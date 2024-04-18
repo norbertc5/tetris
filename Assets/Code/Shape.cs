@@ -1,5 +1,6 @@
-using UnityEngine;
+using System.Collections;
 using System.Linq;
+using UnityEngine;
 
 public class Shape : MonoBehaviour
 {
@@ -7,19 +8,30 @@ public class Shape : MonoBehaviour
 
     [Header("Movement")]
     [SerializeField] private float xMovementDelay = .2f;
+    [SerializeField] private float yMovementDelay = 1;
     private float actualXMovemnetDelay;
+    bool canMove = true;
 
     private int rotationPhase = 1;  // <1, 4>, using to determine rotation
+    Transform[] children = new Transform[4];
 
     private void Start()
     {
         transform.position = new Vector3(-0.2f, 3.8f);
         actualXMovemnetDelay = xMovementDelay;
-        InvokeRepeating("MoveDown", 1, 1);
+        InvokeRepeating("MoveDown", 1, yMovementDelay);
+
+        for (int i = 0; i < 4; i++)
+        {
+            children[i] = transform.GetChild(i);
+        }
     }
 
     private void Update()
     {
+        if (!canMove)
+            return;
+
         #region Horizontal movement
 
         // get input and move the shape if delay is valid
@@ -46,7 +58,53 @@ public class Shape : MonoBehaviour
     /// </summary>
     void MoveDown()
     {
-        transform.position -= new Vector3(0, CELL_SIZE);
+        Transform lastChildY = GetVerticalEdgeChild();
+
+        // checks if the shape touches bottom edge
+        if (lastChildY.position.y <= -3.8f)
+        {
+            StartCoroutine(Freeze());
+        }
+        else
+        {
+            StopAllCoroutines();
+
+            foreach (Transform s in children)
+            {
+                s.GetComponent<SpriteRenderer>().color = new Color(255, 255, 255);
+            }
+        }
+
+        // moves down the shape
+        if(lastChildY.position.y > -3.8f)
+            transform.position -= new Vector3(0, CELL_SIZE);
+    }
+
+    /// <summary>
+    /// The procedure of stopping the shape on the bottom edge.
+    /// </summary>
+    /// <returns></returns>
+    IEnumerator Freeze()
+    {
+        /*
+         * First, changes the color of the shape
+         * if the color is changed, stops the movement
+         * changing color takes one tick time, so player has one tick time to move the shape on the bottom edge before freez
+         */
+
+        float t = 0;
+        SpriteRenderer sp = GetComponentInChildren<SpriteRenderer>();
+
+        while (sp.color.g > 0)
+        {
+            // changes color of each child
+            foreach(Transform s in children)
+                s.GetComponent<SpriteRenderer>().color = Color.Lerp(Color.white, Color.magenta, t);
+
+            t += Time.deltaTime / yMovementDelay;
+            yield return null;
+        }
+        canMove = false;
     }
 
     /// <summary>
@@ -55,7 +113,7 @@ public class Shape : MonoBehaviour
     /// <param name="dirFactor"></param>
     void MoveHorizontal(float dirFactor)
     {
-        Transform edgeChild = GetEdgeChild();
+        Transform edgeChild = GetHorizontalEdgeChild();
 
         if (Mathf.Abs(edgeChild.position.x + CELL_SIZE * dirFactor) <= 1.8f)
             transform.position += new Vector3(CELL_SIZE * dirFactor, 0);
@@ -65,24 +123,19 @@ public class Shape : MonoBehaviour
     /// Returns the child nearest the edge.
     /// </summary>
     /// <returns></returns>
-    Transform GetEdgeChild()
+    Transform GetHorizontalEdgeChild()
     {
-        Transform[] children = new Transform[4];
-        for (int i = 0; i < 4; i++) { children[i] = transform.GetChild(i); }
         return children.OrderBy(t => Mathf.Abs(t.transform.position.x)).LastOrDefault();
     }
 
-    /*bool IsOnEdge(float nextMoveXChange)
+    /// <summary>
+    /// Returns the child nearest the bottm edge.
+    /// </summary>
+    /// <returns></returns>
+    Transform GetVerticalEdgeChild()
     {
-        for (int i = 0; i < 4; i++)
-        {
-            Transform child = transform.GetChild(i);
-            if (Mathf.Abs(child.position.x + nextMoveXChange) > 1.8f)
-                return true;
-        }
-
-        return false;
-    }*/
+        return children.OrderBy(t => Mathf.Abs(t.transform.position.y)).LastOrDefault();
+    }
 
     /// <summary>
     /// Rotates the shape.
@@ -108,11 +161,17 @@ public class Shape : MonoBehaviour
         }
 
         // check if each shape part is on the board, if not, move the shape
-        Transform edgeChild = GetEdgeChild();
+        Transform edgeChild = GetHorizontalEdgeChild();
         if (Mathf.Abs(edgeChild.position.x) > 1.8f)
         {
             int dirFactor = (edgeChild.position.x > 0) ? -1 : 1;
             transform.position += new Vector3(CELL_SIZE * dirFactor, 0);
+        }
+
+        // prevents the shape to bog in the bottom edge
+        if(GetVerticalEdgeChild().position.y < -3.81f)
+        {
+            transform.position += new Vector3(0, CELL_SIZE);
         }
     }
 }

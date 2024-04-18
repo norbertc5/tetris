@@ -1345,6 +1345,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   xMovementDelay: 0.2
+  yMovementDelay: 1
 --- !u!4 &761465941
 Transform:
   m_ObjectHideFlags: 0
@@ -1413,6 +1414,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   xMovementDelay: 0.2
+  yMovementDelay: 0.5
 --- !u!1 &924752996
 GameObject:
   m_ObjectHideFlags: 0
@@ -1779,6 +1781,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   xMovementDelay: 0.2
+  yMovementDelay: 1
 --- !u!4 &1482188470
 Transform:
   m_ObjectHideFlags: 0
@@ -1828,6 +1831,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   xMovementDelay: 0.2
+  yMovementDelay: 1
 --- !u!4 &1588172283
 Transform:
   m_ObjectHideFlags: 0
