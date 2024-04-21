@@ -4,22 +4,31 @@ using UnityEngine;
 
 public class Shape : MonoBehaviour
 {
-    private const float CELL_SIZE = 0.4f;
+    /*
+     * This class contains:
+     * -movement for the shape,
+     * -horizontal steering,
+     * -rotating,
+     * -stopping on an obstacle,
+     * -clamping to don't bog beyond edges.
+     * */
 
     [Header("Movement")]
     [SerializeField] private float xMovementDelay = .2f;
     [SerializeField] private float yMovementDelay = 1;
+    [SerializeField] private float speedUpFactor = 2;
     private float actualXMovemnetDelay;
-    bool canMove = true;
-
+    private bool canMove = true;
     private int rotationPhase = 1;  // <1, 4>, using to determine rotation
+
+    private const float CELL_SIZE = 0.4f;
     Transform[] children = new Transform[4];
 
     private void Start()
     {
         transform.position = new Vector3(-0.2f, 3.8f);
         actualXMovemnetDelay = xMovementDelay;
-        InvokeRepeating("MoveDown", 1, yMovementDelay);
+        StartCoroutine(MoveDown());
 
         for (int i = 0; i < 4; i++)
         {
@@ -47,37 +56,54 @@ public class Shape : MonoBehaviour
 
         #endregion
 
-        if(Input.GetKeyDown(KeyCode.UpArrow))
+        #region Rotation
+
+        if (Input.GetKeyDown(KeyCode.UpArrow))
         {
             Rotate();
         }
+
+        #endregion
+
+        #region Speed up
+
+        if (Input.GetKeyDown(KeyCode.DownArrow))
+            yMovementDelay /= speedUpFactor;
+        if (Input.GetKeyUp(KeyCode.DownArrow))
+            yMovementDelay *= speedUpFactor;
+
+        #endregion
     }
 
     /// <summary>
     /// Moves the shape down by 1 cell.
     /// </summary>
-    void MoveDown()
+    IEnumerator MoveDown()
     {
-        Transform lastChildY = GetVerticalEdgeChild();
-
-        // checks if the shape touches bottom edge
-        if (lastChildY.position.y <= -3.8f)
+        while (canMove)
         {
-            StartCoroutine(Freeze());
-        }
-        else
-        {
-            StopAllCoroutines();
+            yield return new WaitForSeconds(yMovementDelay);
+            Transform lastChildY = GetVerticalEdgeChild();
 
-            foreach (Transform s in children)
+            // checks if the shape touches bottom edge
+            if (lastChildY.position.y <= -3.8f)
             {
-                s.GetComponent<SpriteRenderer>().color = new Color(255, 255, 255);
+                StartCoroutine(Freeze());
             }
-        }
+            else
+            {
+                // reset color
+                foreach (Transform s in children)
+                {
+                    s.GetComponent<SpriteRenderer>().color = new Color(255, 255, 255);
+                }
+            }
 
-        // moves down the shape
-        if(lastChildY.position.y > -3.8f)
-            transform.position -= new Vector3(0, CELL_SIZE);
+            // moves down the shape
+            if (lastChildY.position.y > -3.8f)
+                transform.position -= new Vector3(0, CELL_SIZE);
+            yield return null;
+        }
     }
 
     /// <summary>
@@ -94,6 +120,8 @@ public class Shape : MonoBehaviour
 
         float t = 0;
         SpriteRenderer sp = GetComponentInChildren<SpriteRenderer>();
+        Transform lastChild = GetVerticalEdgeChild();
+        float lastChildYPos = lastChild.position.y;
 
         while (sp.color.g > 0)
         {
@@ -102,6 +130,11 @@ public class Shape : MonoBehaviour
                 s.GetComponent<SpriteRenderer>().color = Color.Lerp(Color.white, Color.magenta, t);
 
             t += Time.deltaTime / yMovementDelay;
+
+            // stop freezing when moved
+            if (lastChild.position.y != lastChildYPos)
+                yield break;
+
             yield return null;
         }
         canMove = false;
