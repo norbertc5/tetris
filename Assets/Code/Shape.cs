@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Shape : MonoBehaviour
@@ -18,22 +19,24 @@ public class Shape : MonoBehaviour
     [SerializeField] private float yMovementDelay = 1;
     [SerializeField] private float speedUpFactor = 2;
     private float actualXMovemnetDelay;
-    private bool canMove = true;
+    public bool canMove = true;
     private int rotationPhase = 1;  // <1, 4>, using to determine rotation
+    private float actualSpeedUp;
 
     private const float CELL_SIZE = 0.4f;
     Transform[] children = new Transform[4];
+    public bool hasStartedFreezing = false;
 
     private void Start()
     {
-        transform.position = new Vector3(-0.2f, 3.8f);
-        actualXMovemnetDelay = xMovementDelay;
-        StartCoroutine(MoveDown());
-
         for (int i = 0; i < 4; i++)
         {
             children[i] = transform.GetChild(i);
         }
+        transform.position = new Vector3(-0.2f, 3.8f);
+        actualXMovemnetDelay = xMovementDelay;
+        StartCoroutine(MoveDown());
+        Invoke("FindFloor", .1f);  // on start is must be invoked with small delay
     }
 
     private void Update()
@@ -68,9 +71,9 @@ public class Shape : MonoBehaviour
         #region Speed up
 
         if (Input.GetKeyDown(KeyCode.DownArrow))
-            yMovementDelay /= speedUpFactor;
+            actualSpeedUp = speedUpFactor;
         if (Input.GetKeyUp(KeyCode.DownArrow))
-            yMovementDelay *= speedUpFactor;
+            actualSpeedUp = 0;
 
         #endregion
     }
@@ -82,26 +85,19 @@ public class Shape : MonoBehaviour
     {
         while (canMove)
         {
-            yield return new WaitForSeconds(yMovementDelay);
-            Transform lastChildY = GetVerticalEdgeChild();
+            yield return new WaitForSeconds(yMovementDelay - actualSpeedUp);
 
-            // checks if the shape touches bottom edge
-            if (lastChildY.position.y <= -3.8f)
+            // checks if the shape can move, if not freeze it
+            if (!hasStartedFreezing && GetVerticalEdgeChild().position.y <= -3.8f)
             {
                 StartCoroutine(Freeze());
-            }
-            else
-            {
-                // reset color
-                foreach (Transform s in children)
-                {
-                    s.GetComponent<SpriteRenderer>().color = new Color(255, 255, 255);
-                }
+                hasStartedFreezing = true;
             }
 
             // moves down the shape
-            if (lastChildY.position.y > -3.8f)
+            if (!hasStartedFreezing)
                 transform.position -= new Vector3(0, CELL_SIZE);
+
             yield return null;
         }
     }
@@ -110,18 +106,18 @@ public class Shape : MonoBehaviour
     /// The procedure of stopping the shape on the bottom edge.
     /// </summary>
     /// <returns></returns>
-    IEnumerator Freeze()
+    public IEnumerator Freeze()
     {
         /*
          * First, changes the color of the shape
          * if the color is changed, stops the movement
-         * changing color takes one tick time, so player has one tick time to move the shape on the bottom edge before freez
+         * if player has moved while freezing, process stops
          */
 
         float t = 0;
         SpriteRenderer sp = GetComponentInChildren<SpriteRenderer>();
         Transform lastChild = GetVerticalEdgeChild();
-        float lastChildYPos = lastChild.position.y;
+        Vector3 lastChildPos = lastChild.position;
 
         while (sp.color.g > 0)
         {
@@ -132,12 +128,20 @@ public class Shape : MonoBehaviour
             t += Time.deltaTime / yMovementDelay;
 
             // stop freezing when moved
-            if (lastChild.position.y != lastChildYPos)
+            if (lastChild.position != lastChildPos)
+            {
+                hasStartedFreezing = false;
                 yield break;
+            }
 
             yield return null;
         }
         canMove = false;
+        GameManager.OnShapeArrived?.Invoke();
+        foreach(Transform c in children)
+        {
+            c.gameObject.layer = 0;
+        }
     }
 
     /// <summary>
@@ -149,7 +153,10 @@ public class Shape : MonoBehaviour
         Transform edgeChild = GetHorizontalEdgeChild();
 
         if (Mathf.Abs(edgeChild.position.x + CELL_SIZE * dirFactor) <= 1.8f)
+        {
             transform.position += new Vector3(CELL_SIZE * dirFactor, 0);
+            FindFloor();
+        }
     }
 
     /// <summary>
@@ -205,6 +212,17 @@ public class Shape : MonoBehaviour
         if(GetVerticalEdgeChild().position.y < -3.81f)
         {
             transform.position += new Vector3(0, CELL_SIZE);
+        }
+    }
+
+    /// <summary>
+    /// Finds the 'floor ' for all pieces. Using to stop on obstacels.
+    /// </summary>
+    void FindFloor()
+    {
+        foreach(Transform child in children) 
+        {
+            child.GetComponent<Piece>().ThrowRay();
         }
     }
 }
