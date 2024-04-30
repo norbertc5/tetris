@@ -1,7 +1,9 @@
+using System;
 using System.Collections;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
+using static Unity.VisualScripting.Metadata;
 
 public class Shape : MonoBehaviour
 {
@@ -13,19 +15,20 @@ public class Shape : MonoBehaviour
      * -stopping on an obstacle,
      * -clamping to don't bog beyond edges.
      * */
+    public bool hasStartedFreezing = false;
 
     [Header("Movement")]
     [SerializeField] private float xMovementDelay = .2f;
     [SerializeField] private float yMovementDelay = 1;
     [SerializeField] private float speedUpFactor = 2;
     private float actualXMovemnetDelay;
-    public bool canMove = true;
+    private bool canMove = true;
     private int rotationPhase = 1;  // <1, 4>, using to determine rotation
     private float actualSpeedUp;
-
     private const float CELL_SIZE = 0.4f;
+
     Transform[] children = new Transform[4];
-    public bool hasStartedFreezing = false;
+    GameManager gameManager;
 
     private void Start()
     {
@@ -33,6 +36,8 @@ public class Shape : MonoBehaviour
         {
             children[i] = transform.GetChild(i);
         }
+        gameManager = FindObjectOfType<GameManager>();
+
         transform.position = new Vector3(-0.2f, 3.8f);
         actualXMovemnetDelay = xMovementDelay;
         StartCoroutine(MoveDown());
@@ -209,20 +214,33 @@ public class Shape : MonoBehaviour
         }
 
         // prevents the shape to bog in the bottom edge
-        if(GetVerticalEdgeChild().position.y < -3.81f)
-        {
+        if (GetVerticalEdgeChild().position.y < -3.81f)
             transform.position += new Vector3(0, CELL_SIZE);
-        }
+
+        FindFloor();
     }
 
     /// <summary>
-    /// Finds the 'floor ' for all pieces. Using to stop on obstacels.
+    /// Finds the 'floor ' for all pieces. Using to stop on obstacels. Also updates ghost.
     /// </summary>
     void FindFloor()
     {
         foreach(Transform child in children) 
-        {
             child.GetComponent<Piece>().ThrowRay();
+
+        #region Updating ghost
+        float yPosAddition = 0;
+        Piece lastYPosPiece = children.OrderBy(t => t.localPosition.y).FirstOrDefault().GetComponent<Piece>();
+        Piece lastFreezePosPiece = children.OrderBy(t => t.GetComponent<Piece>().freezePos.y).LastOrDefault().GetComponent<Piece>();
+
+        // check if lastYPosPiece and lastFreezePosPiece freeze positions are the same. If true lift up the ghost
+        if (lastYPosPiece.transform.localPosition.y == -1 && (lastFreezePosPiece.freezePos.y <= -3.8f || 
+            (Mathf.Abs(Mathf.Round(lastYPosPiece.freezePos.y * 10) * .1f) - Mathf.Abs(Mathf.Round(lastFreezePosPiece.freezePos.y* 10) * .1f) == 0)))
+        {
+            yPosAddition = CELL_SIZE;          
         }
+
+        gameManager.SetGhost(new Vector2(transform.position.x, lastFreezePosPiece.freezePos.y + yPosAddition), new Vector3(0, 0, -90 * (rotationPhase - 1)));
+        #endregion
     }
 }
