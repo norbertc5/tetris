@@ -10,9 +10,10 @@ GameObject:
   m_Component:
   - component: {fileID: 8401003885102642014}
   - component: {fileID: 6512600781981295547}
+  - component: {fileID: 5927332648346665629}
   m_Layer: 0
   m_Name: TestShape
-  m_TagString: Untagged
+  m_TagString: Piece
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -52,6 +53,34 @@ MonoBehaviour:
   xMovementDelay: 0.1
   yMovementDelay: 0.5
   speedUpFactor: 0.45
+  canMove: 1
+--- !u!50 &5927332648346665629
+Rigidbody2D:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7564712689098314852}
+  m_BodyType: 1
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDrag: 0
+  m_AngularDrag: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0
 --- !u!1001 &479393247638192917
 PrefabInstance:
   m_ObjectHideFlags: 0

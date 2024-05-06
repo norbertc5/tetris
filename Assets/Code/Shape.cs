@@ -13,16 +13,17 @@ public class Shape : MonoBehaviour
      * -horizontal steering,
      * -rotating,
      * -stopping on an obstacle,
-     * -clamping to don't bog beyond edges.
+     * -clamping to don't bog beyond edges,
+     * -clamping on other shapes while moving horizontal and rotating.
      * */
     public bool hasStartedFreezing = false;
+    [HideInInspector] public bool canMove = true;
 
     [Header("Movement")]
     [SerializeField] private float xMovementDelay = .2f;
     [SerializeField] private float yMovementDelay = 1;
     [SerializeField] private float speedUpFactor = 2;
     private float actualXMovemnetDelay;
-    private bool canMove = true;
     private int rotationPhase = 1;  // <1, 4>, using to determine rotation
     private float actualSpeedUp;
     private const float CELL_SIZE = 0.4f;
@@ -98,10 +99,10 @@ public class Shape : MonoBehaviour
                 StartCoroutine(Freeze());
                 hasStartedFreezing = true;
             }
-
             // moves down the shape
             if (!hasStartedFreezing)
                 transform.position -= new Vector3(0, CELL_SIZE);
+
 
             yield return null;
         }
@@ -147,6 +148,7 @@ public class Shape : MonoBehaviour
         {
             c.gameObject.layer = 0;
         }
+
     }
 
     /// <summary>
@@ -155,22 +157,29 @@ public class Shape : MonoBehaviour
     /// <param name="dirFactor"></param>
     void MoveHorizontal(float dirFactor)
     {
-        Transform edgeChild = GetHorizontalEdgeChild();
-
-        if (Mathf.Abs(edgeChild.position.x + CELL_SIZE * dirFactor) <= 1.8f)
+        foreach (Transform child in children)
         {
-            transform.position += new Vector3(CELL_SIZE * dirFactor, 0);
-            FindFloor();
+            if (!child.GetComponent<Piece>().ThrowRayHorizontal(dirFactor))
+                return;
         }
+
+        transform.position += new Vector3(CELL_SIZE * dirFactor, 0);
+        FindFloor();
     }
 
     /// <summary>
     /// Returns the child nearest the edge.
     /// </summary>
     /// <returns></returns>
-    Transform GetHorizontalEdgeChild()
+    public Transform GetHorizontalEdgeChild(bool nearestDirectly = true, bool getLeftExtreme = false)
     {
-        return children.OrderBy(t => Mathf.Abs(t.transform.position.x)).LastOrDefault();
+        if(getLeftExtreme)
+            return children.OrderBy(t => t.transform.position.x).FirstOrDefault();
+
+        if (nearestDirectly)
+            return children.OrderBy(t => Mathf.Abs(t.transform.position.x)).LastOrDefault();
+        else
+            return children.OrderBy(t => t.transform.position.x).LastOrDefault();
     }
 
     /// <summary>
@@ -179,7 +188,7 @@ public class Shape : MonoBehaviour
     /// <returns></returns>
     Transform GetVerticalEdgeChild()
     {
-        return children.OrderBy(t => Mathf.Abs(t.transform.position.y)).LastOrDefault();
+        return children.OrderBy(t => t.transform.localPosition.y).FirstOrDefault();
     }
 
     /// <summary>
@@ -193,7 +202,40 @@ public class Shape : MonoBehaviour
          * We change localPositon of each shape part
          */
 
+        #region Clamping on shapes
+
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.right, 10);
+        float rightEdge = 1.8f, leftEdge = -1.8f;
+
+        if(hit.transform.CompareTag("Piece"))
+        {
+            rightEdge = hit.point.x;
+            if (rightEdge > 0)
+                rightEdge += .1f;
+            rightEdge = (float)Math.Round(rightEdge, 1);
+        }
+
+        hit = Physics2D.Raycast(transform.position, Vector2.left, 10);
+        if (hit.transform.CompareTag("Piece"))
+        {
+            leftEdge = hit.point.x;
+            if (leftEdge < 0)
+                leftEdge -= .1f;
+            leftEdge = (float)Math.Round(leftEdge, 1);
+        }
+
+        //Debug.Log($"{leftEdge}, {rightEdge}");
+
+        // if overlapping other shape, return
+        if ((Mathf.Abs(rightEdge - leftEdge) <= (CELL_SIZE * 2) && (Mathf.Abs(rightEdge - leftEdge) != 0
+            || (rightEdge == 0.6f && leftEdge == -0.6f)))
+            || Mathf.Abs(rightEdge - leftEdge) == 1.2f)
+                return;
+
+        #endregion
+
         rotationPhase++;
+
         for (int i = 0; i < 4; i++)
         {
             Transform child = transform.GetChild(i);
@@ -204,6 +246,9 @@ public class Shape : MonoBehaviour
             if (rotationPhase > 4)
                 rotationPhase = 1;
         }
+
+        if (Mathf.Abs(gameManager.RoundFloat(GetVerticalEdgeChild().position.y, 1)) >= Mathf.Abs(gameManager.RoundFloat(GetVerticalEdgeChild().GetComponent<Piece>().freezePos.y, 1)))
+            transform.position += new Vector3(0, CELL_SIZE);
 
         // check if each shape part is on the board, if not, move the shape
         Transform edgeChild = GetHorizontalEdgeChild();
@@ -225,22 +270,26 @@ public class Shape : MonoBehaviour
     /// </summary>
     void FindFloor()
     {
-        foreach(Transform child in children) 
-            child.GetComponent<Piece>().ThrowRay();
+        foreach(Transform child in children)
+        {
+            child.GetComponent<Piece>().ThrowRayVertical();
+        }
 
         #region Updating ghost
+
         float yPosAddition = 0;
-        Piece lastYPosPiece = children.OrderBy(t => t.localPosition.y).FirstOrDefault().GetComponent<Piece>();
+        Piece lastYPosPiece = GetVerticalEdgeChild().GetComponent<Piece>();
         Piece lastFreezePosPiece = children.OrderBy(t => t.GetComponent<Piece>().freezePos.y).LastOrDefault().GetComponent<Piece>();
 
         // check if lastYPosPiece and lastFreezePosPiece freeze positions are the same. If true lift up the ghost
         if (lastYPosPiece.transform.localPosition.y == -1 && (lastFreezePosPiece.freezePos.y <= -3.8f || 
-            (Mathf.Abs(Mathf.Round(lastYPosPiece.freezePos.y * 10) * .1f) - Mathf.Abs(Mathf.Round(lastFreezePosPiece.freezePos.y* 10) * .1f) == 0)))
+            (Mathf.Abs(gameManager.RoundFloat(lastYPosPiece.freezePos.y, 1)) - Mathf.Abs(gameManager.RoundFloat(lastFreezePosPiece.freezePos.y, 1)) == 0)))
         {
             yPosAddition = CELL_SIZE;          
         }
-
+        //Debug.Log(lastFreezePosPiece.freezePos.y + yPosAddition);
         gameManager.SetGhost(new Vector2(transform.position.x, lastFreezePosPiece.freezePos.y + yPosAddition), new Vector3(0, 0, -90 * (rotationPhase - 1)));
+
         #endregion
     }
 }

@@ -28,4 +28,10 @@ public class GameManager : MonoBehaviour
         GhostTrans.position = pos;
         GhostTrans.eulerAngles = rot;
     }
+
+    public float RoundFloat(float f, int decimals)
+    {
+        return Mathf.Round(f * 10) * (1f / decimals);
+    }
+
 }
