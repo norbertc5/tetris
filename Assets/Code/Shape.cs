@@ -28,7 +28,7 @@ public class Shape : MonoBehaviour
     private float actualSpeedUp;
     private const float CELL_SIZE = 0.4f;
 
-    Transform[] children = new Transform[4];
+    public Transform[] children = new Transform[4];
     GameManager gameManager;
 
     private void Start()
@@ -93,8 +93,9 @@ public class Shape : MonoBehaviour
         {
             yield return new WaitForSeconds(yMovementDelay - actualSpeedUp);
 
+            //Debug.Log(hasStartedFreezing);
             // checks if the shape can move, if not freeze it
-            if (!hasStartedFreezing && GetVerticalEdgeChild().position.y <= -3.8f)
+            if (!hasStartedFreezing && GetVerticalEdgeChild().position.y <= GetVerticalEdgeChild().GetComponent<Piece>().freezePos.y)
             {
                 StartCoroutine(Freeze());
                 hasStartedFreezing = true;
@@ -124,12 +125,13 @@ public class Shape : MonoBehaviour
         SpriteRenderer sp = GetComponentInChildren<SpriteRenderer>();
         Transform lastChild = GetVerticalEdgeChild();
         Vector3 lastChildPos = lastChild.position;
+        Color firstColor = sp.color;
 
-        while (sp.color.g > 0)
+        while (sp.color != Color.white)
         {
             // changes color of each child
             foreach(Transform s in children)
-                s.GetComponent<SpriteRenderer>().color = Color.Lerp(Color.white, Color.magenta, t);
+                s.GetComponent<SpriteRenderer>().color = Color.Lerp(firstColor, Color.white, t);
 
             t += Time.deltaTime / yMovementDelay;
 
@@ -137,6 +139,8 @@ public class Shape : MonoBehaviour
             if (lastChild.position != lastChildPos)
             {
                 hasStartedFreezing = false;
+                foreach (Transform s in children)
+                    s.GetComponent<SpriteRenderer>().color = firstColor;
                 yield break;
             }
 
@@ -146,6 +150,7 @@ public class Shape : MonoBehaviour
         GameManager.OnShapeArrived?.Invoke();
         foreach(Transform c in children)
         {
+            c.GetComponent<SpriteRenderer>().color = firstColor;
             c.gameObject.layer = 0;
         }
 
@@ -186,7 +191,7 @@ public class Shape : MonoBehaviour
     /// Returns the child nearest the bottm edge.
     /// </summary>
     /// <returns></returns>
-    Transform GetVerticalEdgeChild()
+    public Transform GetVerticalEdgeChild()
     {
         return children.OrderBy(t => t.transform.localPosition.y).FirstOrDefault();
     }
@@ -225,12 +230,15 @@ public class Shape : MonoBehaviour
         }
 
         //Debug.Log($"{leftEdge}, {rightEdge}");
+        //Debug.Log(Mathf.Abs(rightEdge - leftEdge));
 
         // if overlapping other shape, return
-        if ((Mathf.Abs(rightEdge - leftEdge) <= (CELL_SIZE * 2) && (Mathf.Abs(rightEdge - leftEdge) != 0
-            || (rightEdge == 0.6f && leftEdge == -0.6f)))
-            || Mathf.Abs(rightEdge - leftEdge) == 1.2f)
+        if ((Mathf.Abs(rightEdge - leftEdge) <= (CELL_SIZE * 2) && (Mathf.Abs(rightEdge - leftEdge) != 0            
+            || Mathf.Abs(rightEdge - leftEdge) <= 1.1f)))
                 return;
+
+        if ((rightEdge == 0.6f && leftEdge == -0.6f))
+            return;
 
         #endregion
 
@@ -246,9 +254,6 @@ public class Shape : MonoBehaviour
             if (rotationPhase > 4)
                 rotationPhase = 1;
         }
-
-        if (Mathf.Abs(gameManager.RoundFloat(GetVerticalEdgeChild().position.y, 1)) >= Mathf.Abs(gameManager.RoundFloat(GetVerticalEdgeChild().GetComponent<Piece>().freezePos.y, 1)))
-            transform.position += new Vector3(0, CELL_SIZE);
 
         // check if each shape part is on the board, if not, move the shape
         Transform edgeChild = GetHorizontalEdgeChild();
@@ -271,9 +276,7 @@ public class Shape : MonoBehaviour
     void FindFloor()
     {
         foreach(Transform child in children)
-        {
             child.GetComponent<Piece>().ThrowRayVertical();
-        }
 
         #region Updating ghost
 
@@ -287,7 +290,6 @@ public class Shape : MonoBehaviour
         {
             yPosAddition = CELL_SIZE;          
         }
-        //Debug.Log(lastFreezePosPiece.freezePos.y + yPosAddition);
         gameManager.SetGhost(new Vector2(transform.position.x, lastFreezePosPiece.freezePos.y + yPosAddition), new Vector3(0, 0, -90 * (rotationPhase - 1)));
 
         #endregion

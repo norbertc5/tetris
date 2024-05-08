@@ -64,7 +64,13 @@ public class Piece : MonoBehaviour
             if(d == 0)
                 d = -shape.GetHorizontalEdgeChild(true, true).localPosition.x;
 
-            transform.parent.position += new Vector3(0.4f * -d, 0);
+            if(shape.GetVerticalEdgeChild() == transform)
+                transform.parent.position += new Vector3(0, 0.4f);
+            else
+                transform.parent.position += new Vector3(0.4f * -d, 0);
+
+            foreach (Transform child in shape.children)
+                child.GetComponent<Piece>().ThrowRayVertical();
         }
     }
 }
