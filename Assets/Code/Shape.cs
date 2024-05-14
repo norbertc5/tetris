@@ -1,9 +1,7 @@
 using System;
 using System.Collections;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
-using static Unity.VisualScripting.Metadata;
 
 public class Shape : MonoBehaviour
 {
@@ -93,7 +91,6 @@ public class Shape : MonoBehaviour
         {
             yield return new WaitForSeconds(yMovementDelay - actualSpeedUp);
 
-            //Debug.Log(hasStartedFreezing);
             // checks if the shape can move, if not freeze it
             if (!hasStartedFreezing && GetVerticalEdgeChild().position.y <= GetVerticalEdgeChild().GetComponent<Piece>().freezePos.y)
             {
@@ -286,11 +283,11 @@ public class Shape : MonoBehaviour
 
         // check if lastYPosPiece and lastFreezePosPiece freeze positions are the same. If true lift up the ghost
         if (lastYPosPiece.transform.localPosition.y == -1 && (lastFreezePosPiece.freezePos.y <= -3.8f || 
-            (Mathf.Abs(gameManager.RoundFloat(lastYPosPiece.freezePos.y, 1)) - Mathf.Abs(gameManager.RoundFloat(lastFreezePosPiece.freezePos.y, 1)) == 0)))
+            (Mathf.Abs((float)Math.Round(lastYPosPiece.freezePos.y, 1)) - Mathf.Abs((float)Math.Round(lastFreezePosPiece.freezePos.y, 1)) == 0)))
         {
             yPosAddition = CELL_SIZE;          
         }
-        gameManager.SetGhost(new Vector2(transform.position.x, lastFreezePosPiece.freezePos.y + yPosAddition), new Vector3(0, 0, -90 * (rotationPhase - 1)));
+        gameManager.SetGhost(new Vector3(transform.position.x, lastFreezePosPiece.freezePos.y + yPosAddition, .5f), new Vector3(0, 0, -90 * (rotationPhase - 1)));
 
         #endregion
     }

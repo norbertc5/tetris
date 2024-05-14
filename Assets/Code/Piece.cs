@@ -1,16 +1,21 @@
-using System.Linq;
 using UnityEngine;
-using static Unity.VisualScripting.Metadata;
+using System;
+using System.Collections;
 
 public class Piece : MonoBehaviour
 {
     public Vector3 freezePos;
+    public bool hasBeenCounted;  // to detect full lines
     Shape shape;
+    GameManager gameManager;
 
     void Start()
     {
         gameObject.layer = 2;
         shape = GetComponentInParent<Shape>();
+        gameManager = FindObjectOfType<GameManager>();
+        gameManager.pieces.Add(this);
+        GameManager.OnLineCleard += ClearLineCheck;
     }
 
     void Update()
@@ -52,6 +57,46 @@ public class Piece : MonoBehaviour
             return false;
 
         return true;
+    }
+
+    /// <summary>
+    /// Checks if this piece is on clearing line.
+    /// </summary>
+    /// <param name="cleardLinePos"></param>
+    void ClearLineCheck(float cleardLinePos)
+    {
+        if (!enabled)
+            return;
+
+        if ((float)Math.Round(transform.position.y, 1) == cleardLinePos)
+            StartCoroutine(Disappear());
+        else if (transform.position.y > cleardLinePos)
+            Invoke("MovePieceDown", 1);
+    }
+
+    void MovePieceDown()
+    {
+        transform.position -= new Vector3(0, .4f);
+    }
+
+    /// <summary>
+    /// Fade the piece.
+    /// </summary>
+    IEnumerator Disappear()
+    {
+        yield return new WaitForSeconds(.1f);  // to setup color properly
+        SpriteRenderer sp = GetComponent<SpriteRenderer>();
+        Color firstColor = sp.color;
+        float t = 0;
+
+        while (sp.color.a > 0)
+        {
+            sp.color = Color.Lerp(firstColor, new Color(firstColor.r, firstColor.g, firstColor.b, 0), t);
+            t += Time.deltaTime;
+            yield return null;
+        }
+        enabled = false;
+        gameObject.SetActive(false);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
