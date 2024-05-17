@@ -13,7 +13,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Transform ghostRef;
     [SerializeField] private GameObject shapePrefab;
 
-    public Dictionary<float, int> piecesAmountInRow = new Dictionary<float, int>();
+    private Dictionary<float, int> piecesAmountInRow = new Dictionary<float, int>();
+    TetrominoData tetrominoData;
 
     public delegate void Action();
     public static Action OnShapeArrived;
@@ -28,12 +29,29 @@ public class GameManager : MonoBehaviour
         {
             piecesAmountInRow.Add((float)Math.Round(i, 1), 0);
         }
+        tetrominoData = FindObjectOfType<TetrominoData>();
+        SpawnShape();
     }
 
 
     void SpawnShape()
     {
         GameObject newShape = Instantiate(shapePrefab);
+
+        int r = UnityEngine.Random.Range(0, 2);
+        char shape = ' ';
+        switch (r)
+        {
+            case 0: shape = 'T'; break;
+            case 1: shape = 'O'; break;
+        }
+        //shape = 'O';
+
+        for (int i = 0; i < 4; i++)
+        {
+            newShape.transform.GetChild(i).localPosition = new Vector3(tetrominoData.tetromino[shape][i][0], tetrominoData.tetromino[shape][i][1]);
+            GhostTrans.GetChild(i).localPosition = new Vector3(tetrominoData.tetromino[shape][i][0], tetrominoData.tetromino[shape][i][1]);
+        }
     }
 
     public void SetGhost(Vector3 pos, Vector3 rot)
@@ -56,30 +74,38 @@ public class GameManager : MonoBehaviour
             }
         });
 
-        float lineYPos = 0;
+        List<float> fullLines = new List<float>();
 
         // find line with 10 pieces
         foreach (KeyValuePair<float, int> pair in piecesAmountInRow)
         {
+                Debug.Log($"{pair.Key}, {pair.Value}");
             if(pair.Value >= 10)
             {
-                lineYPos = pair.Key;
+                fullLines.Add(pair.Key);
                 OnLineCleard?.Invoke(pair.Key);
             }
         }
 
-        // move down pieces over cleared line
-        if(lineYPos != 0)
+        // move down amount of pieces in dict for pieces over cleared line
+        if (fullLines.Count > 0)
         {
-            for (float i = lineYPos; i < 0; i += .4f)
+            for (float i = -3.8f; i < 0; i += .4f)
             {
                 try
                 {
-                    piecesAmountInRow[(float)Math.Round(i,1)] = piecesAmountInRow[(float)Math.Round(i+.4f, 1)];
+                    int piecesInLine = piecesAmountInRow[(float)Math.Round(i + .4f, 1)];
+                    if (piecesInLine >= 10)
+                        piecesInLine = 0;
+                    piecesAmountInRow[(float)Math.Round(i, 1)] = piecesInLine;
                 }
-                catch{ }
+                catch
+                {
+
+                }
             }
-            lineYPos = 0;
+
+            fullLines.Clear();
         }
     }
 }
