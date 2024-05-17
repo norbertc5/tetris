@@ -221,6 +221,7 @@ MonoBehaviour:
   pieces: []
   ghostRef: {fileID: 5162700295856209403}
   shapePrefab: {fileID: 7564712689098314852, guid: fce5e2d3515cc7f4aafc2b73511f8543, type: 3}
+  newC: {r: 0.9245283, g: 0.16135636, b: 0.8553096, a: 1}
 --- !u!61 &388787667
 BoxCollider2D:
   m_ObjectHideFlags: 0

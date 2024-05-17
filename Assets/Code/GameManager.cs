@@ -20,6 +20,8 @@ public class GameManager : MonoBehaviour
     public static Action OnShapeArrived;
     public static Action<float> OnLineCleard;
 
+    [SerializeField] Color newC;
+
     void Start()
     {
         OnShapeArrived += SpawnShape;
@@ -45,11 +47,13 @@ public class GameManager : MonoBehaviour
             case 0: shape = 'T'; break;
             case 1: shape = 'O'; break;
         }
-        //shape = 'O';
+        //shape = 'T';
 
         for (int i = 0; i < 4; i++)
         {
-            newShape.transform.GetChild(i).localPosition = new Vector3(tetrominoData.tetromino[shape][i][0], tetrominoData.tetromino[shape][i][1]);
+            Transform newShapeChild = newShape.transform.GetChild(i);
+            newShapeChild.localPosition = new Vector3(tetrominoData.tetromino[shape][i][0], tetrominoData.tetromino[shape][i][1]);
+            newShapeChild.GetComponent<SpriteRenderer>().color = tetrominoData.tetrominoColor[shape];
             GhostTrans.GetChild(i).localPosition = new Vector3(tetrominoData.tetromino[shape][i][0], tetrominoData.tetromino[shape][i][1]);
         }
     }
