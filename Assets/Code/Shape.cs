@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.ComponentModel;
 using System.Linq;
 using UnityEngine;
 
@@ -22,12 +23,14 @@ public class Shape : MonoBehaviour
     [SerializeField] private float yMovementDelay = 1;
     [SerializeField] private float speedUpFactor = 2;
     private float actualXMovemnetDelay;
-    private int rotationPhase = 1;  // <1, 4>, using to determine rotation
     private float actualSpeedUp;
     private const float CELL_SIZE = 0.4f;
 
     public Transform[] children = new Transform[4];
-    GameManager gameManager;
+    Ghost ghost;
+
+    public delegate void Action();
+    public static Action LineDisappeard;
 
     private void Start()
     {
@@ -35,12 +38,13 @@ public class Shape : MonoBehaviour
         {
             children[i] = transform.GetChild(i);
         }
-        gameManager = FindObjectOfType<GameManager>();
+        ghost = FindObjectOfType<Ghost>();
 
         transform.position = new Vector3(-0.2f, 3.8f);
         actualXMovemnetDelay = xMovementDelay;
         StartCoroutine(MoveDown());
         Invoke("FindFloor", .1f);  // on start is must be invoked with small delay
+        LineDisappeard += FindFloor;
     }
 
     private void Update()
@@ -190,7 +194,7 @@ public class Shape : MonoBehaviour
     /// <returns></returns>
     public Transform GetVerticalEdgeChild()
     {
-        return children.OrderBy(t => t.transform.localPosition.y).FirstOrDefault();
+        return children.OrderBy(t => t.transform.position.y).FirstOrDefault();
     }
 
     /// <summary>
@@ -231,33 +235,25 @@ public class Shape : MonoBehaviour
 
         // if overlapping other shape, return
         if ((Mathf.Abs(rightEdge - leftEdge) <= (CELL_SIZE * 2) && (Mathf.Abs(rightEdge - leftEdge) != 0            
-            || Mathf.Abs(rightEdge - leftEdge) <= 1.1f)))
+            || Mathf.Abs(rightEdge - leftEdge) <= 1.2f)))
                 return;
 
-        if ((rightEdge == 0.6f && leftEdge == -0.6f))
+        if (rightEdge == 0.6f && leftEdge == -0.6f)
             return;
 
         #endregion
 
-        rotationPhase++;
-
-        for (int i = 0; i < 4; i++)
-        {
-            Transform child = transform.GetChild(i);
-            child.localPosition = new Vector3(child.localPosition.y, child.localPosition.x);
-
-            if (rotationPhase == 1 || rotationPhase == 3)
-                child.localPosition = -child.localPosition;
-            if (rotationPhase > 4)
-                rotationPhase = 1;
-        }
+        transform.eulerAngles += new Vector3(0, 0, 90);
 
         // check if each shape part is on the board, if not, move the shape
-        Transform edgeChild = GetHorizontalEdgeChild();
-        if (Mathf.Abs(edgeChild.position.x) > 1.8f)
+        for (int i = 0; i < 2; i++)
         {
-            int dirFactor = (edgeChild.position.x > 0) ? -1 : 1;
-            transform.position += new Vector3(CELL_SIZE * dirFactor, 0);
+            Transform edgeChild = GetHorizontalEdgeChild();
+            if (Mathf.Abs(edgeChild.position.x) > 1.8f)
+            {
+                int dirFactor = (edgeChild.position.x > 0) ? -1 : 1;
+                transform.position += new Vector3(CELL_SIZE * dirFactor, 0);
+            }
         }
 
         // prevents the shape to bog in the bottom edge
@@ -272,22 +268,15 @@ public class Shape : MonoBehaviour
     /// </summary>
     void FindFloor()
     {
-        foreach(Transform child in children)
+        foreach (Transform child in children)
             child.GetComponent<Piece>().ThrowRayVertical();
 
         #region Updating ghost
 
-        float yPosAddition = 0;
-        Piece lastYPosPiece = GetVerticalEdgeChild().GetComponent<Piece>();
-        Piece lastFreezePosPiece = children.OrderBy(t => t.GetComponent<Piece>().freezePos.y).LastOrDefault().GetComponent<Piece>();
+        //Piece lastYPosPiece = GetVerticalEdgeChild().GetComponent<Piece>();
+        Piece lastFreezePosPiece = children.OrderBy(t => t.GetComponent<Piece>().freezePos.y).LastOrDefault().GetComponent<Piece>(); 
 
-        // check if lastYPosPiece and lastFreezePosPiece freeze positions are the same. If true lift up the ghost
-        if (lastYPosPiece.transform.localPosition.y == -1 && (lastFreezePosPiece.freezePos.y <= -3.8f || 
-            (Mathf.Abs((float)Math.Round(lastYPosPiece.freezePos.y, 1)) - Mathf.Abs((float)Math.Round(lastFreezePosPiece.freezePos.y, 1)) == 0)))
-        {
-            yPosAddition = CELL_SIZE;          
-        }
-        gameManager.SetGhost(new Vector3(transform.position.x, lastFreezePosPiece.freezePos.y + yPosAddition, .5f), new Vector3(0, 0, -90 * (rotationPhase - 1)));
+        ghost.SetGhost(new Vector3(transform.position.x, lastFreezePosPiece.freezePos.y, .5f), transform.localEulerAngles);
 
         #endregion
     }

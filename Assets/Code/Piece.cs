@@ -85,6 +85,7 @@ public class Piece : MonoBehaviour
     IEnumerator Disappear()
     {
         yield return new WaitForSeconds(.1f);  // to setup color properly
+        GetComponent<BoxCollider2D>().enabled = false;
         SpriteRenderer sp = GetComponent<SpriteRenderer>();
         Color firstColor = sp.color;
         float t = 0;
@@ -97,6 +98,7 @@ public class Piece : MonoBehaviour
         }
         enabled = false;
         gameObject.SetActive(false);
+        Shape.LineDisappeard?.Invoke();
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -112,7 +114,7 @@ public class Piece : MonoBehaviour
             if(shape.GetVerticalEdgeChild() == transform)
                 transform.parent.position += new Vector3(0, 0.4f);
             else
-                transform.parent.position += new Vector3(0.4f * -d, 0);
+                transform.parent.position -= new Vector3(0.4f * -d, 0);
 
             foreach (Transform child in shape.children)
                 child.GetComponent<Piece>().ThrowRayVertical();

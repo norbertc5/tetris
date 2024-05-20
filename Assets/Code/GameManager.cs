@@ -7,11 +7,10 @@ using static UnityEngine.Rendering.DebugUI;
 
 public class GameManager : MonoBehaviour
 {
-    public Transform GhostTrans { get { return ghostRef; } private set {ghostRef = value; }}
     public List<Piece> pieces = new List<Piece>();
 
-    [SerializeField] private Transform ghostRef;
     [SerializeField] private GameObject shapePrefab;
+    Ghost ghost;
 
     private Dictionary<float, int> piecesAmountInRow = new Dictionary<float, int>();
     TetrominoData tetrominoData;
@@ -19,8 +18,6 @@ public class GameManager : MonoBehaviour
     public delegate void Action();
     public static Action OnShapeArrived;
     public static Action<float> OnLineCleard;
-
-    [SerializeField] Color newC;
 
     void Start()
     {
@@ -32,6 +29,7 @@ public class GameManager : MonoBehaviour
             piecesAmountInRow.Add((float)Math.Round(i, 1), 0);
         }
         tetrominoData = FindObjectOfType<TetrominoData>();
+        ghost = FindObjectOfType<Ghost>();
         SpawnShape();
     }
 
@@ -40,12 +38,14 @@ public class GameManager : MonoBehaviour
     {
         GameObject newShape = Instantiate(shapePrefab);
 
-        int r = UnityEngine.Random.Range(0, 2);
+        int r = UnityEngine.Random.Range(0, 4);
         char shape = ' ';
         switch (r)
         {
             case 0: shape = 'T'; break;
             case 1: shape = 'O'; break;
+            case 2: shape = 'S'; break;
+            case 3: shape = 'Z'; break;
         }
         //shape = 'T';
 
@@ -54,14 +54,8 @@ public class GameManager : MonoBehaviour
             Transform newShapeChild = newShape.transform.GetChild(i);
             newShapeChild.localPosition = new Vector3(tetrominoData.tetromino[shape][i][0], tetrominoData.tetromino[shape][i][1]);
             newShapeChild.GetComponent<SpriteRenderer>().color = tetrominoData.tetrominoColor[shape];
-            GhostTrans.GetChild(i).localPosition = new Vector3(tetrominoData.tetromino[shape][i][0], tetrominoData.tetromino[shape][i][1]);
+            ghost.AdjustToShape(shape);
         }
-    }
-
-    public void SetGhost(Vector3 pos, Vector3 rot)
-    {
-        GhostTrans.position = pos;
-        GhostTrans.eulerAngles = rot;
     }
 
     /// <summary>
@@ -83,7 +77,6 @@ public class GameManager : MonoBehaviour
         // find line with 10 pieces
         foreach (KeyValuePair<float, int> pair in piecesAmountInRow)
         {
-                Debug.Log($"{pair.Key}, {pair.Value}");
             if(pair.Value >= 10)
             {
                 fullLines.Add(pair.Key);
