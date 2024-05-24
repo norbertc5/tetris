@@ -219,7 +219,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pieces: []
-  ghostRef: {fileID: 5162700295856209403}
   shapePrefab: {fileID: 7564712689098314852, guid: fce5e2d3515cc7f4aafc2b73511f8543, type: 3}
 --- !u!61 &388787667
 BoxCollider2D:
@@ -790,7 +789,8 @@ GameObject:
   - component: {fileID: 2634792945325685946}
   - component: {fileID: 3671326801224471628}
   - component: {fileID: 3671326801224471629}
-  m_Layer: 0
+  - component: {fileID: 3671326801224471631}
+  m_Layer: 2
   m_Name: ShapePiece (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -875,7 +875,8 @@ GameObject:
   - component: {fileID: 409550652842210473}
   - component: {fileID: 1426658502742170719}
   - component: {fileID: 3022558494368545962}
-  m_Layer: 0
+  - component: {fileID: 3022558494368545964}
+  m_Layer: 2
   m_Name: ShapePiece (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -927,6 +928,18 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 0.5, y: 0.5}
   m_EdgeRadius: 0
+--- !u!114 &3022558494368545964
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3022558494368545961}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d12fac303f0e7504a9be2ca0e204adbd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &3424373283815588634
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -945,7 +958,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1703326220722090527, guid: fce5e2d3515cc7f4aafc2b73511f8543, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3220480663934206021, guid: fce5e2d3515cc7f4aafc2b73511f8543, type: 3}
       propertyPath: m_Enabled
@@ -957,7 +970,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3935231500032178700, guid: fce5e2d3515cc7f4aafc2b73511f8543, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4691585556086552087, guid: fce5e2d3515cc7f4aafc2b73511f8543, type: 3}
       propertyPath: m_Enabled
@@ -965,11 +978,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5194934156234446924, guid: fce5e2d3515cc7f4aafc2b73511f8543, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 1
+      value: -1
       objectReference: {fileID: 0}
     - target: {fileID: 5194934156234446924, guid: fce5e2d3515cc7f4aafc2b73511f8543, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6512600781981295547, guid: fce5e2d3515cc7f4aafc2b73511f8543, type: 3}
       propertyPath: shape
@@ -1029,11 +1042,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8793770859262886989, guid: fce5e2d3515cc7f4aafc2b73511f8543, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8793770859262886989, guid: fce5e2d3515cc7f4aafc2b73511f8543, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1137,6 +1150,18 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 0.5, y: 0.5}
   m_EdgeRadius: 0
+--- !u!114 &3671326801224471631
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 634417045278749882}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d12fac303f0e7504a9be2ca0e204adbd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &5162700295856209403
 Transform:
   m_ObjectHideFlags: 0
@@ -1182,7 +1207,8 @@ GameObject:
   - component: {fileID: 8875426094846433001}
   - component: {fileID: 7874648939838930463}
   - component: {fileID: 8875426094846433002}
-  m_Layer: 0
+  - component: {fileID: 8875426094846433004}
+  m_Layer: 2
   m_Name: ShapePiece (3)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1198,9 +1224,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5162700295856209403}
-  - component: {fileID: 6613683428119304899}
   - component: {fileID: 6613683428119304898}
-  m_Layer: 0
+  - component: {fileID: 6613683428119304899}
+  m_Layer: 2
   m_Name: Ghost
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1219,6 +1245,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 658f7212648e4c24ead832ec621c9152, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  hasAdjustedPos: 0
+  boggingPiecesY: []
+  bogPos: -3.8
+  hasMovedUp: 0
+  touching: 0
 --- !u!50 &6613683428119304899
 Rigidbody2D:
   serializedVersion: 4
@@ -1309,7 +1340,8 @@ GameObject:
   - component: {fileID: 5276534398553148136}
   - component: {fileID: 6870666103365788190}
   - component: {fileID: 7306889038273610473}
-  m_Layer: 0
+  - component: {fileID: 7306889038273610475}
+  m_Layer: 2
   m_Name: ShapePiece
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1361,6 +1393,18 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 0.5, y: 0.5}
   m_EdgeRadius: 0
+--- !u!114 &7306889038273610475
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7306889038273610472}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d12fac303f0e7504a9be2ca0e204adbd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!212 &7874648939838930463
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1473,6 +1517,18 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 0.5, y: 0.5}
   m_EdgeRadius: 0
+--- !u!114 &8875426094846433004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6302389431824326377}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d12fac303f0e7504a9be2ca0e204adbd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

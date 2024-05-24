@@ -104,17 +104,17 @@ public class Piece : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collision)
     {
         // moves the shape when overlapping obstacle
-        if(collision.CompareTag("Piece") && shape.canMove)
+        if(collision.CompareTag("Piece") && shape.canMove/* && !shape.boggingPieces.Contains(transform)*/)
         {
-            float d = transform.localPosition.x;
-
-            if(d == 0)
-                d = -shape.GetHorizontalEdgeChild(true, true).localPosition.x;
-
-            if(shape.GetVerticalEdgeChild() == transform)
+            if (shape.GetVerticalEdgeChild() == transform)
                 transform.parent.position += new Vector3(0, 0.4f);
             else
-                transform.parent.position -= new Vector3(0.4f * -d, 0);
+            {
+                if(transform.position.x < transform.parent.position.x)
+                    transform.parent.position += new Vector3(0.4f, 0);
+                else
+                    transform.parent.position -= new Vector3(0.4f, 0);
+            }
 
             foreach (Transform child in shape.children)
                 child.GetComponent<Piece>().ThrowRayVertical();

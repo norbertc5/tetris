@@ -38,7 +38,7 @@ public class GameManager : MonoBehaviour
     {
         GameObject newShape = Instantiate(shapePrefab);
 
-        int r = UnityEngine.Random.Range(0, 4);
+        int r = UnityEngine.Random.Range(0, 6);
         char shape = ' ';
         switch (r)
         {
@@ -46,15 +46,18 @@ public class GameManager : MonoBehaviour
             case 1: shape = 'O'; break;
             case 2: shape = 'S'; break;
             case 3: shape = 'Z'; break;
+            case 4: shape = 'L'; break;
+            case 5: shape = 'J'; break;
         }
-        //shape = 'T';
+        //shape = 'Z';
 
         for (int i = 0; i < 4; i++)
         {
             Transform newShapeChild = newShape.transform.GetChild(i);
             newShapeChild.localPosition = new Vector3(tetrominoData.tetromino[shape][i][0], tetrominoData.tetromino[shape][i][1]);
             newShapeChild.GetComponent<SpriteRenderer>().color = tetrominoData.tetrominoColor[shape];
-            ghost.AdjustToShape(shape);
+            //ghost.AdjustToShape();
+            ghost.transform.GetChild(i).localPosition = new Vector3(tetrominoData.tetromino[shape][i][0], tetrominoData.tetromino[shape][i][1]);
         }
     }
 

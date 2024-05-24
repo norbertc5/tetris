@@ -1,36 +1,30 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class Ghost : MonoBehaviour
 {
-    bool hasAdjustedPos;
-    TetrominoData tetrominoData;
+    Transform[] children = new Transform[4];
+    [HideInInspector] public List<float> yPosesUsedToLift;  // defineies positions of pieces uesd to lift to prevent too big lift
 
     private void Start()
     {
-        tetrominoData = FindObjectOfType<TetrominoData>();
+        for (int i = 0; i < 4; i++)
+        {
+            children[i] = transform.GetChild(i);
+        }
     }
 
     public void SetGhost(Vector3 pos, Vector3 rot)
     {
+        yPosesUsedToLift.Clear();
         transform.position = pos;
         transform.eulerAngles = rot;
-        hasAdjustedPos = false;
-    }
 
-    public void AdjustToShape(char shape)
-    {
-        for (int i = 0; i < 4; i++)
-            transform.GetChild(i).localPosition = new Vector3(tetrominoData.tetromino[shape][i][0], tetrominoData.tetromino[shape][i][1]);
-    }
-
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        // adjusting ghost position when boggin in ground or other shape
-        if (collision.gameObject.layer != 2 && !hasAdjustedPos)
-        {
-            hasAdjustedPos = true;
-            transform.position += new Vector3(0, 0.4f);
-        }
+        // sometimes Z and S sahpes are floating over pos and it repairs it
+        if ((float)Math.Round(children.OrderBy(t => t.transform.position.y).FirstOrDefault().position.y, 1) ==
+            (float)Math.Round(pos.y, 1))
+            transform.position = pos - new Vector3(0, 0.4f);
     }
 }

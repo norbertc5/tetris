@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using UnityEngine;
@@ -27,6 +28,7 @@ public class Shape : MonoBehaviour
     private const float CELL_SIZE = 0.4f;
 
     public Transform[] children = new Transform[4];
+    public List<Transform> boggingPieces = new List<Transform>();
     Ghost ghost;
 
     public delegate void Action();
@@ -210,13 +212,14 @@ public class Shape : MonoBehaviour
 
         #region Clamping on shapes
 
+        //boggingPieces.Clear();
         RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.right, 10);
         float rightEdge = 1.8f, leftEdge = -1.8f;
 
         if(hit.transform.CompareTag("Piece"))
         {
             rightEdge = hit.point.x;
-            if (rightEdge > 0)
+            //if (rightEdge > 0)
                 rightEdge += .1f;
             rightEdge = (float)Math.Round(rightEdge, 1);
         }
@@ -234,8 +237,8 @@ public class Shape : MonoBehaviour
         //Debug.Log(Mathf.Abs(rightEdge - leftEdge));
 
         // if overlapping other shape, return
-        if ((Mathf.Abs(rightEdge - leftEdge) <= (CELL_SIZE * 2) && (Mathf.Abs(rightEdge - leftEdge) != 0            
-            || Mathf.Abs(rightEdge - leftEdge) <= 1.2f)))
+        if ((Mathf.Abs(rightEdge - leftEdge) <= (CELL_SIZE * 2) && Mathf.Abs(rightEdge - leftEdge) != 0)         
+            || Mathf.Abs(rightEdge - leftEdge) <= 1.2f)
                 return;
 
         if (rightEdge == 0.6f && leftEdge == -0.6f)
@@ -273,11 +276,10 @@ public class Shape : MonoBehaviour
 
         #region Updating ghost
 
-        //Piece lastYPosPiece = GetVerticalEdgeChild().GetComponent<Piece>();
         Piece lastFreezePosPiece = children.OrderBy(t => t.GetComponent<Piece>().freezePos.y).LastOrDefault().GetComponent<Piece>(); 
-
         ghost.SetGhost(new Vector3(transform.position.x, lastFreezePosPiece.freezePos.y, .5f), transform.localEulerAngles);
 
         #endregion
+
     }
 }

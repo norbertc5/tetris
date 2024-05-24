@@ -50,10 +50,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hasStartedFreezing: 0
+  canMove: 1
   xMovementDelay: 0.1
   yMovementDelay: 0.5
   speedUpFactor: 0.45
-  canMove: 1
+  children:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  boggingPieces: []
 --- !u!50 &5927332648346665629
 Rigidbody2D:
   serializedVersion: 4
@@ -221,6 +227,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 8401003885102642014}
     m_Modifications:
+    - target: {fileID: 5169280983787533570, guid: 5b8b2839a08402448975bcb0c578123c, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5169280983787533570, guid: 5b8b2839a08402448975bcb0c578123c, type: 3}
       propertyPath: m_IsTrigger
       value: 1
