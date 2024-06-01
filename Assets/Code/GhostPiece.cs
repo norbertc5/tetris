@@ -17,6 +17,7 @@ public class GhostPiece : MonoBehaviour
         if (collision.gameObject.layer != 2 && !ghost.yPosesUsedToLift.Contains(ypos - 0.4f))
         {
             transform.parent.position += new Vector3(0, 0.4f);
+            ghost.gfxPos += new Vector3(0, 0.4f);
             ghost.yPosesUsedToLift.Add(ypos);
         }
     }

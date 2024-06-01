@@ -57,7 +57,8 @@ public class GameManager : MonoBehaviour
             newShapeChild.localPosition = new Vector3(tetrominoData.tetromino[shape][i][0], tetrominoData.tetromino[shape][i][1]);
             newShapeChild.GetComponent<SpriteRenderer>().color = tetrominoData.tetrominoColor[shape];
             //ghost.AdjustToShape();
-            ghost.transform.GetChild(i).localPosition = new Vector3(tetrominoData.tetromino[shape][i][0], tetrominoData.tetromino[shape][i][1]);
+            //ghost.transform.GetChild(i).localPosition = new Vector3(tetrominoData.tetromino[shape][i][0], tetrominoData.tetromino[shape][i][1]);
+            ghost.AdjustShape(shape);
         }
     }
 
