@@ -6,6 +6,7 @@ public class TetrominoData : MonoBehaviour
 {
     public Dictionary<char, Dictionary<int, int[]>> tetromino = new Dictionary<char, Dictionary<int, int[]>>();
     public Dictionary<char, Color> tetrominoColor = new Dictionary<char, Color>();
+    public Queue<char> shapesInQueue = new Queue<char>();
 
     void Awake()
     {
@@ -62,5 +63,14 @@ public class TetrominoData : MonoBehaviour
         });
 
         tetrominoColor.Add('J', new Color32(51, 153, 255, 255));
+
+        tetromino.Add('I', new Dictionary<int, int[]> {
+            { 0, new int[] { -1, 0 } },
+            { 1, new int[] { 0, 0 } },
+            { 2, new int[] { 1, 0 } },
+            { 3, new int[] { 2, 0 } }
+        });
+
+        tetrominoColor.Add('I', new Color32(51, 204, 255, 255));
     }
 }

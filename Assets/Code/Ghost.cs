@@ -7,8 +7,8 @@ public class Ghost : MonoBehaviour
 {
     Transform[] children = new Transform[4];
     [HideInInspector] public List<float> yPosesUsedToLift;  // defineies positions of pieces uesd to lift to prevent too big lift
-    public Vector3 gfxPos;
-    public Transform gfx;
+    [HideInInspector] public Vector3 gfxPos;
+    [SerializeField] Transform gfx;
     TetrominoData tetrominoData;
 
     private void Awake()

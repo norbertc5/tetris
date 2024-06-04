@@ -1,9 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Linq;
-using static UnityEngine.Rendering.DebugUI;
 
 public class GameManager : MonoBehaviour
 {
@@ -19,12 +16,16 @@ public class GameManager : MonoBehaviour
     public static Action OnShapeArrived;
     public static Action<float> OnLineCleard;
 
+    public const float CELL_SIZE = 0.4f;
+    public const float LAST_LINE_Y_POS = -3.8f;
+    public const float HORIZONTAL_EDGE = 1.8f;
+
     void Start()
     {
         OnShapeArrived += SpawnShape;
         OnShapeArrived += SearchLines;
 
-        for (float i = -3.8f; i < 0; i += .4f)
+        for (float i = LAST_LINE_Y_POS; i < 0; i += .4f)
         {
             piecesAmountInRow.Add((float)Math.Round(i, 1), 0);
         }
@@ -36,29 +37,45 @@ public class GameManager : MonoBehaviour
 
     void SpawnShape()
     {
-        GameObject newShape = Instantiate(shapePrefab);
-
-        int r = UnityEngine.Random.Range(0, 6);
-        char shape = ' ';
-        switch (r)
+        // when queue is empty draw new one
+        if(tetrominoData.shapesInQueue.Count == 0)
         {
-            case 0: shape = 'T'; break;
-            case 1: shape = 'O'; break;
-            case 2: shape = 'S'; break;
-            case 3: shape = 'Z'; break;
-            case 4: shape = 'L'; break;
-            case 5: shape = 'J'; break;
+            List<int> addedShapesIndexes = new List<int>();
+            for(int i=0; i<7; i++)
+            {
+                // prevent same shapes in one draw
+                int r = -1;
+                do
+                {
+                    r = UnityEngine.Random.Range(0, 7);
+                }
+                while (addedShapesIndexes.Contains(r));
+
+                char shape = ' ';
+                switch (r)
+                {
+                    case 0: shape = 'T'; break;
+                    case 1: shape = 'O'; break;
+                    case 2: shape = 'S'; break;
+                    case 3: shape = 'Z'; break;
+                    case 4: shape = 'L'; break;
+                    case 5: shape = 'J'; break;
+                    case 6: shape = 'I'; break;
+                }
+                tetrominoData.shapesInQueue.Enqueue(shape);
+                addedShapesIndexes.Add(r);
+            }
         }
-        //shape = 'Z';
+        GameObject newShape = Instantiate(shapePrefab);
+        char actualShape = tetrominoData.shapesInQueue.Dequeue();
+        newShape.GetComponent<Shape>().shape = actualShape;
 
         for (int i = 0; i < 4; i++)
         {
             Transform newShapeChild = newShape.transform.GetChild(i);
-            newShapeChild.localPosition = new Vector3(tetrominoData.tetromino[shape][i][0], tetrominoData.tetromino[shape][i][1]);
-            newShapeChild.GetComponent<SpriteRenderer>().color = tetrominoData.tetrominoColor[shape];
-            //ghost.AdjustToShape();
-            //ghost.transform.GetChild(i).localPosition = new Vector3(tetrominoData.tetromino[shape][i][0], tetrominoData.tetromino[shape][i][1]);
-            ghost.AdjustShape(shape);
+            newShapeChild.localPosition = new Vector3(tetrominoData.tetromino[actualShape][i][0], tetrominoData.tetromino[actualShape][i][1]);
+            newShapeChild.GetComponent<SpriteRenderer>().color = tetrominoData.tetrominoColor[actualShape];
+            ghost.AdjustShape(actualShape);
         }
     }
 
@@ -91,7 +108,7 @@ public class GameManager : MonoBehaviour
         // move down amount of pieces in dict for pieces over cleared line
         if (fullLines.Count > 0)
         {
-            for (float i = -3.8f; i < 0; i += .4f)
+            for (float i = LAST_LINE_Y_POS; i < 0; i += .4f)
             {
                 try
                 {

@@ -1,7 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using UnityEngine;
 
@@ -16,8 +14,9 @@ public class Shape : MonoBehaviour
      * -clamping to don't bog beyond edges,
      * -clamping on other shapes while moving horizontal and rotating.
      * */
-    public bool hasStartedFreezing = false;
+    [HideInInspector] public bool hasStartedFreezing = false;
     [HideInInspector] public bool canMove = true;
+    [HideInInspector] public char shape;
 
     [Header("Movement")]
     [SerializeField] private float xMovementDelay = .2f;
@@ -25,10 +24,8 @@ public class Shape : MonoBehaviour
     [SerializeField] private float speedUpFactor = 2;
     private float actualXMovemnetDelay;
     private float actualSpeedUp;
-    private const float CELL_SIZE = 0.4f;
 
     public Transform[] children = new Transform[4];
-    public List<Transform> boggingPieces = new List<Transform>();
     Ghost ghost;
 
     public delegate void Action();
@@ -105,7 +102,7 @@ public class Shape : MonoBehaviour
             }
             // moves down the shape
             if (!hasStartedFreezing)
-                transform.position -= new Vector3(0, CELL_SIZE);
+                transform.position -= new Vector3(0, GameManager.CELL_SIZE);
 
 
             yield return null;
@@ -171,7 +168,7 @@ public class Shape : MonoBehaviour
                 return;
         }
 
-        transform.position += new Vector3(CELL_SIZE * dirFactor, 0);
+        transform.position += new Vector3(GameManager.CELL_SIZE * dirFactor, 0);
         FindFloor();
     }
 
@@ -204,23 +201,15 @@ public class Shape : MonoBehaviour
     /// </summary>
     void Rotate()
     {
-        /*
-         * We can't simply rotate whole shape because it makes shape goes beyond the edges
-         * So it's a bit more sophisticated
-         * We change localPositon of each shape part
-         */
-
         #region Clamping on shapes
 
-        //boggingPieces.Clear();
         RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.right, 10);
-        float rightEdge = 1.8f, leftEdge = -1.8f;
+        float rightEdge = GameManager.HORIZONTAL_EDGE, leftEdge = -GameManager.HORIZONTAL_EDGE, spaceToRotate = 1.2f;
 
         if(hit.transform.CompareTag("Piece"))
         {
             rightEdge = hit.point.x;
-            //if (rightEdge > 0)
-                rightEdge += .1f;
+            rightEdge += .1f;
             rightEdge = (float)Math.Round(rightEdge, 1);
         }
 
@@ -233,13 +222,17 @@ public class Shape : MonoBehaviour
             leftEdge = (float)Math.Round(leftEdge, 1);
         }
 
-        //Debug.Log($"{leftEdge}, {rightEdge}");
-        //Debug.Log(Mathf.Abs(rightEdge - leftEdge));
+
+        if (shape == 'I')
+            spaceToRotate = 1.6f;
 
         // if overlapping other shape, return
-        if ((Mathf.Abs(rightEdge - leftEdge) <= (CELL_SIZE * 2) && Mathf.Abs(rightEdge - leftEdge) != 0)         
-            || Mathf.Abs(rightEdge - leftEdge) <= 1.2f)
+        if ((Mathf.Abs(rightEdge - leftEdge) <= (GameManager.CELL_SIZE * 2) && Mathf.Abs(rightEdge - leftEdge) != 0)         
+            || Mathf.Abs(rightEdge - leftEdge) <= spaceToRotate)
                 return;
+
+        Transform rightExtreme = children.OrderBy(t => t.position.x).LastOrDefault();
+        Transform leftExtreme = children.OrderBy(t => t.position.x).FirstOrDefault();
 
         if (rightEdge == 0.6f && leftEdge == -0.6f)
             return;
@@ -252,16 +245,16 @@ public class Shape : MonoBehaviour
         for (int i = 0; i < 2; i++)
         {
             Transform edgeChild = GetHorizontalEdgeChild();
-            if (Mathf.Abs(edgeChild.position.x) > 1.8f)
+            if (Mathf.Abs(edgeChild.position.x) > GameManager.HORIZONTAL_EDGE)
             {
                 int dirFactor = (edgeChild.position.x > 0) ? -1 : 1;
-                transform.position += new Vector3(CELL_SIZE * dirFactor, 0);
+                transform.position += new Vector3(GameManager.CELL_SIZE * dirFactor, 0);
             }
         }
 
         // prevents the shape to bog in the bottom edge
-        if (GetVerticalEdgeChild().position.y < -3.81f)
-            transform.position += new Vector3(0, CELL_SIZE);
+        if (GetVerticalEdgeChild().position.y < GameManager.LAST_LINE_Y_POS + .1f)
+            transform.position += new Vector3(0, GameManager.CELL_SIZE);
 
         FindFloor();
     }
