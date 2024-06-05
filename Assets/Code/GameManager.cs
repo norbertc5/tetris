@@ -106,24 +106,21 @@ public class GameManager : MonoBehaviour
         }
 
         // move down amount of pieces in dict for pieces over cleared line
-        if (fullLines.Count > 0)
+        if(fullLines.Count > 0)
         {
-            for (float i = LAST_LINE_Y_POS; i < 0; i += .4f)
+            for (float i = fullLines[0]; i < 0; i += CELL_SIZE)
             {
-                try
-                {
-                    int piecesInLine = piecesAmountInRow[(float)Math.Round(i + .4f, 1)];
-                    if (piecesInLine >= 10)
-                        piecesInLine = 0;
-                    piecesAmountInRow[(float)Math.Round(i, 1)] = piecesInLine;
-                }
-                catch
-                {
+                float thisKey = (float)Math.Round(i, 1);
+                float nextKey = (float)Math.Round(i + CELL_SIZE * fullLines.Count, 1);
 
-                }
+                if(nextKey < 0)
+                    piecesAmountInRow[thisKey] = piecesAmountInRow[nextKey];
             }
-
-            fullLines.Clear();
         }
+
+        /*foreach (KeyValuePair<float, int> pair in piecesAmountInRow)
+        {
+            print($"key: {pair.Key}, val: {pair.Value}");
+        }*/
     }
 }

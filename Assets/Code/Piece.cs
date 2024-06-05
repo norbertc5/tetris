@@ -104,16 +104,16 @@ public class Piece : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collision)
     {
         // moves the shape when overlapping obstacle
-        if(collision.CompareTag("Piece") && shape.canMove/* && !shape.boggingPieces.Contains(transform)*/)
+        if(collision.CompareTag("Piece") && shape.canMove)
         {
             if (shape.GetVerticalEdgeChild() == transform)
-                transform.parent.position += new Vector3(0, 0.4f);
+                transform.parent.position += new Vector3(0, GameManager.CELL_SIZE);
             else
             {
                 if(transform.position.x < transform.parent.position.x)
-                    transform.parent.position += new Vector3(0.4f, 0);
+                    transform.parent.position += new Vector3(GameManager.CELL_SIZE, 0);
                 else
-                    transform.parent.position -= new Vector3(0.4f, 0);
+                    transform.parent.position -= new Vector3(GameManager.CELL_SIZE, 0);
             }
 
             foreach (Transform child in shape.children)

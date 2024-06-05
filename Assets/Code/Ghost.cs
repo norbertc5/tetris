@@ -6,7 +6,7 @@ using System.Linq;
 public class Ghost : MonoBehaviour
 {
     Transform[] children = new Transform[4];
-    [HideInInspector] public List<float> yPosesUsedToLift;  // defineies positions of pieces uesd to lift to prevent too big lift
+    public List<float> yPosesUsedToLift;  // defineies positions of pieces uesd to lift to prevent too big lift
     [HideInInspector] public Vector3 gfxPos;
     [SerializeField] Transform gfx;
     TetrominoData tetrominoData;

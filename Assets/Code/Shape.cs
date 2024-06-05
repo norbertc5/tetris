@@ -17,6 +17,7 @@ public class Shape : MonoBehaviour
     [HideInInspector] public bool hasStartedFreezing = false;
     [HideInInspector] public bool canMove = true;
     [HideInInspector] public char shape;
+    [HideInInspector] public bool hasDropped;
 
     [Header("Movement")]
     [SerializeField] private float xMovementDelay = .2f;
@@ -81,6 +82,36 @@ public class Shape : MonoBehaviour
             actualSpeedUp = speedUpFactor;
         if (Input.GetKeyUp(KeyCode.DownArrow))
             actualSpeedUp = 0;
+
+        #endregion
+
+        #region Drop 
+
+        if(Input.GetKeyDown(KeyCode.Space))
+        {
+            canMove = false;
+            transform.position = ghost.transform.position;
+            StopAllCoroutines();
+            GameManager.OnShapeArrived?.Invoke();
+
+            foreach (Transform c in children)
+            {
+                //c.GetComponent<SpriteRenderer>().color = firstColor;
+                c.gameObject.layer = 0;
+            }
+
+            /* hasDropped = true;
+             Vector3 lastFreezePos = children.OrderBy(t => t.GetComponent<Piece>().freezePos.y).LastOrDefault().GetComponent<Piece>().freezePos;
+             print(lastFreezePos.y);
+
+             transform.position = new Vector3(transform.position.x, lastFreezePos.y);
+             Vector3 lastYPos = GetVerticalEdgeChild().position;
+
+             if (lastYPos.y >= lastFreezePos.y)
+                 return;
+             float diff = Mathf.Abs(lastYPos.y - lastFreezePos.y);
+             transform.position += new Vector3(0, diff);*/
+        }
 
         #endregion
     }
