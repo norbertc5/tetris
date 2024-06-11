@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -7,7 +8,10 @@ public class GameManager : MonoBehaviour
     public List<Piece> pieces = new List<Piece>();
 
     [SerializeField] private GameObject shapePrefab;
+    [SerializeField] private TextMeshProUGUI scoreText;
+    [SerializeField] private GameObject newScoreDisplay;
     Ghost ghost;
+    int score = 0;
 
     private Dictionary<float, int> piecesAmountInRow = new Dictionary<float, int>();
     TetrominoData tetrominoData;
@@ -19,13 +23,16 @@ public class GameManager : MonoBehaviour
     public const float CELL_SIZE = 0.4f;
     public const float LAST_LINE_Y_POS = -3.8f;
     public const float HORIZONTAL_EDGE = 1.8f;
+    public const float SHAPES_START_Y_POS = 3.4f;
+    const int SCORE_FOR_LINE = 10;
 
     void Start()
     {
         OnShapeArrived += SpawnShape;
         OnShapeArrived += SearchLines;
+        OnLineCleard += UpdateScore;
 
-        for (float i = LAST_LINE_Y_POS; i < 0; i += .4f)
+        for (float i = LAST_LINE_Y_POS; i < SHAPES_START_Y_POS + 2 * CELL_SIZE; i += .4f)
         {
             piecesAmountInRow.Add((float)Math.Round(i, 1), 0);
         }
@@ -117,10 +124,16 @@ public class GameManager : MonoBehaviour
                     piecesAmountInRow[thisKey] = piecesAmountInRow[nextKey];
             }
         }
+    }
 
-        /*foreach (KeyValuePair<float, int> pair in piecesAmountInRow)
-        {
-            print($"key: {pair.Key}, val: {pair.Value}");
-        }*/
+    void UpdateScore(float line)
+    {
+        score += SCORE_FOR_LINE;
+        scoreText.text = score.ToString();
+        var newScoreDsp = Instantiate(newScoreDisplay);
+        newScoreDsp.transform.position = new Vector3(0, line);
+        newScoreDsp.GetComponentInChildren<TextMeshProUGUI>().text = $"+{SCORE_FOR_LINE}";
+        newScoreDsp.transform.SetParent(newScoreDisplay.transform.parent);
+        newScoreDsp.transform.localScale = Vector3.one;
     }
 }

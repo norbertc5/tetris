@@ -18,7 +18,6 @@ public class GhostPiece : MonoBehaviour
             (ypos == (float)Math.Round(collision.transform.position.y, 1) || collision.name == "GameManager"))
         {
             ghost.yPosesUsedToLift.Add(ypos);
-            //print($"{name}: {ypos}, collide: {collision.name}: {collision.transform.position.y}");
             transform.parent.position += new Vector3(0, GameManager.CELL_SIZE);
             ghost.gfxPos += new Vector3(0, GameManager.CELL_SIZE);
         }

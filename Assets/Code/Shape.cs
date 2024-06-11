@@ -40,7 +40,7 @@ public class Shape : MonoBehaviour
         }
         ghost = FindObjectOfType<Ghost>();
 
-        transform.position = new Vector3(-0.2f, 3.8f);
+        transform.position = new Vector3(-0.2f, 3.4f);
         actualXMovemnetDelay = xMovementDelay;
         StartCoroutine(MoveDown());
         Invoke("FindFloor", .1f);  // on start is must be invoked with small delay
@@ -96,21 +96,8 @@ public class Shape : MonoBehaviour
 
             foreach (Transform c in children)
             {
-                //c.GetComponent<SpriteRenderer>().color = firstColor;
                 c.gameObject.layer = 0;
             }
-
-            /* hasDropped = true;
-             Vector3 lastFreezePos = children.OrderBy(t => t.GetComponent<Piece>().freezePos.y).LastOrDefault().GetComponent<Piece>().freezePos;
-             print(lastFreezePos.y);
-
-             transform.position = new Vector3(transform.position.x, lastFreezePos.y);
-             Vector3 lastYPos = GetVerticalEdgeChild().position;
-
-             if (lastYPos.y >= lastFreezePos.y)
-                 return;
-             float diff = Mathf.Abs(lastYPos.y - lastFreezePos.y);
-             transform.position += new Vector3(0, diff);*/
         }
 
         #endregion
@@ -178,12 +165,19 @@ public class Shape : MonoBehaviour
             yield return null;
         }
         canMove = false;
-        GameManager.OnShapeArrived?.Invoke();
-        foreach(Transform c in children)
+        foreach (Transform c in children)
         {
             c.GetComponent<SpriteRenderer>().color = firstColor;
             c.gameObject.layer = 0;
         }
+
+        // handling game over
+        if (transform.position.y > GameManager.SHAPES_START_Y_POS)
+        {
+            print("game over");
+            yield break;
+        }
+        GameManager.OnShapeArrived?.Invoke();
 
     }
 
