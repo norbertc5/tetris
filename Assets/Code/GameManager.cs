@@ -75,7 +75,7 @@ public class GameManager : MonoBehaviour
         }
         GameObject newShape = Instantiate(shapePrefab);
         char actualShape = tetrominoData.shapesInQueue.Dequeue();
-        newShape.GetComponent<Shape>().shape = actualShape;
+        Shape.shape = actualShape;
 
         for (int i = 0; i < 4; i++)
         {
@@ -91,9 +91,15 @@ public class GameManager : MonoBehaviour
     /// </summary>
     void SearchLines()
     {
+        // set piecesAmountInRow to 0
+        for (float i = LAST_LINE_Y_POS; i < SHAPES_START_Y_POS; i+=0.4f)
+        {
+            piecesAmountInRow[(float)Math.Round(i, 1)] = 0;
+        }
+
         // count all pieces according to line
-        pieces.ForEach((Piece p) => { 
-            if(!p.hasBeenCounted)
+        pieces.ForEach((Piece p) => {
+            if(p.gameObject.activeSelf)
             {
                 piecesAmountInRow[(float)Math.Round(p.transform.position.y, 1)] += 1;
                 p.hasBeenCounted = true;
@@ -112,18 +118,11 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // move down amount of pieces in dict for pieces over cleared line
-        if(fullLines.Count > 0)
+        // reset full lines
+        fullLines.ForEach((value) =>
         {
-            for (float i = fullLines[0]; i < 0; i += CELL_SIZE)
-            {
-                float thisKey = (float)Math.Round(i, 1);
-                float nextKey = (float)Math.Round(i + CELL_SIZE * fullLines.Count, 1);
-
-                if(nextKey < 0)
-                    piecesAmountInRow[thisKey] = piecesAmountInRow[nextKey];
-            }
-        }
+            piecesAmountInRow[value] = 0;
+        });
     }
 
     void UpdateScore(float line)

@@ -16,14 +16,14 @@ public class Shape : MonoBehaviour
      * */
     [HideInInspector] public bool hasStartedFreezing = false;
     [HideInInspector] public bool canMove = true;
-    [HideInInspector] public char shape;
     [HideInInspector] public bool hasDropped;
+    public static char shape;
 
     [Header("Movement")]
     [SerializeField] private float xMovementDelay = .2f;
     [SerializeField] private float yMovementDelay = 1;
     [SerializeField] private float speedUpFactor = 2;
-    private float actualXMovemnetDelay;
+    private float actualXMovemenetDelay;
     private float actualSpeedUp;
 
     public Transform[] children = new Transform[4];
@@ -41,7 +41,7 @@ public class Shape : MonoBehaviour
         ghost = FindObjectOfType<Ghost>();
 
         transform.position = new Vector3(-0.2f, 3.4f);
-        actualXMovemnetDelay = xMovementDelay;
+        actualXMovemenetDelay = xMovementDelay;
         StartCoroutine(MoveDown());
         Invoke("FindFloor", .1f);  // on start is must be invoked with small delay
         LineDisappeard += FindFloor;
@@ -57,13 +57,13 @@ public class Shape : MonoBehaviour
         // get input and move the shape if delay is valid
         float input = Input.GetAxisRaw("Horizontal");
 
-        if (input != 0 && actualXMovemnetDelay <= 0) 
+        if (input != 0 && actualXMovemenetDelay <= 0) 
         {
             MoveHorizontal(input);
-            actualXMovemnetDelay = xMovementDelay;
+            actualXMovemenetDelay = xMovementDelay;
         }
-        if (actualXMovemnetDelay > 0)
-            actualXMovemnetDelay -= Time.deltaTime;
+        if (actualXMovemenetDelay > 0)
+            actualXMovemenetDelay -= Time.deltaTime;
 
         #endregion
 
@@ -121,9 +121,6 @@ public class Shape : MonoBehaviour
             // moves down the shape
             if (!hasStartedFreezing)
                 transform.position -= new Vector3(0, GameManager.CELL_SIZE);
-
-
-            yield return null;
         }
     }
 

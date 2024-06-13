@@ -47,19 +47,19 @@ public class TetrominoData : MonoBehaviour
         tetrominoColor.Add('Z', new Color32(255, 51, 0, 255));
 
         tetromino.Add('L', new Dictionary<int, int[]> {
-            { 0, new int[] { -1, 0 } },
-            { 1, new int[] { 0, 0 } },
-            { 2, new int[] { 1, 0 } },
-            { 3, new int[] { 1, 1 } }
+            { 0, new int[] { -2, 0 } },
+            { 1, new int[] { -1, 0 } },
+            { 2, new int[] { 0, 0 } },
+            { 3, new int[] { 0, 1 } }
         });
 
         tetrominoColor.Add('L', new Color32(255, 153, 51, 255));
 
         tetromino.Add('J', new Dictionary<int, int[]> {
-            { 0, new int[] { -1, 1 } },
-            { 1, new int[] { -1, 0 } },
-            { 2, new int[] { 0, 0 } },
-            { 3, new int[] { 1, 0 } }
+            { 0, new int[] { 0, 1 } },
+            { 1, new int[] { 0, 0 } },
+            { 2, new int[] { 1, 0 } },
+            { 3, new int[] { 2, 0 } }
         });
 
         tetrominoColor.Add('J', new Color32(51, 153, 255, 255));
