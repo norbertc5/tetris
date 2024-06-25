@@ -20,17 +20,19 @@ public class Shape : MonoBehaviour
     public static char shape;
 
     [Header("Movement")]
-    [SerializeField] private float xMovementDelay = .2f;
-    [SerializeField] private float yMovementDelay = 1;
-    [SerializeField] private float speedUpFactor = 2;
+    [SerializeField] float xMovementDelay = .2f;
+    [SerializeField] private float normalYMovementDelay = 1;
+    [SerializeField] private float speedUpYDelay = 2;
+    [SerializeField] private float freezingSpeed = 2;
     private float actualXMovemenetDelay;
-    private float actualSpeedUp;
+    private float actualYMovementDelay;
 
     public Transform[] children = new Transform[4];
     Ghost ghost;
 
-    public delegate void Action();
     public static Action LineDisappeard;
+    Coroutine horizontalMovemnetCor;
+    public static float xpos;
 
     private void Start()
     {
@@ -42,15 +44,39 @@ public class Shape : MonoBehaviour
 
         transform.position = new Vector3(-0.2f, 3.4f);
         actualXMovemenetDelay = xMovementDelay;
+        actualYMovementDelay = normalYMovementDelay;
+
         StartCoroutine(MoveDown());
         Invoke("FindFloor", .1f);  // on start is must be invoked with small delay
         LineDisappeard += FindFloor;
+        TouchManager.OnTap += Rotate;
+        TouchManager.OnSwipeHorizontal += MoveHorizontal;
+        TouchManager.OnSwipeDown += () => { actualYMovementDelay = speedUpYDelay; };
+        TouchManager.OnTouchRelease += () => { 
+            if(horizontalMovemnetCor != null) StopCoroutine(horizontalMovemnetCor);
+            actualYMovementDelay = normalYMovementDelay; };
+
+        TouchManager.OnSwipeDownAndRelase += () => {
+            canMove = false;
+            transform.position = ghost.transform.position;
+            StopAllCoroutines();
+            GameManager.OnShapeArrived?.Invoke();
+            TouchManager.OnSwipeDownAndRelase = null;
+            TouchManager.OnTap = null;
+
+            foreach (Transform c in children)
+            {
+                c.gameObject.layer = 0;
+            }
+        };
     }
 
     private void Update()
     {
         if (!canMove)
             return;
+
+        xpos = transform.position.x;
 
         #region Horizontal movement
 
@@ -79,9 +105,9 @@ public class Shape : MonoBehaviour
         #region Speed up
 
         if (Input.GetKeyDown(KeyCode.DownArrow))
-            actualSpeedUp = speedUpFactor;
+            actualYMovementDelay = speedUpYDelay;
         if (Input.GetKeyUp(KeyCode.DownArrow))
-            actualSpeedUp = 0;
+            actualYMovementDelay = 0;
 
         #endregion
 
@@ -108,10 +134,9 @@ public class Shape : MonoBehaviour
     /// </summary>
     IEnumerator MoveDown()
     {
+        yield return new WaitForSeconds(actualYMovementDelay);
         while (canMove)
         {
-            yield return new WaitForSeconds(yMovementDelay - actualSpeedUp);
-
             // checks if the shape can move, if not freeze it
             if (!hasStartedFreezing && GetVerticalEdgeChild().position.y <= GetVerticalEdgeChild().GetComponent<Piece>().freezePos.y)
             {
@@ -121,6 +146,8 @@ public class Shape : MonoBehaviour
             // moves down the shape
             if (!hasStartedFreezing)
                 transform.position -= new Vector3(0, GameManager.CELL_SIZE);
+
+            yield return new WaitForSeconds(actualYMovementDelay);
         }
     }
 
@@ -148,7 +175,7 @@ public class Shape : MonoBehaviour
             foreach(Transform s in children)
                 s.GetComponent<SpriteRenderer>().color = Color.Lerp(firstColor, Color.white, t);
 
-            t += Time.deltaTime / yMovementDelay;
+            t += Time.deltaTime * freezingSpeed;
 
             // stop freezing when moved
             if (lastChild.position != lastChildPos)
@@ -174,8 +201,10 @@ public class Shape : MonoBehaviour
             print("game over");
             yield break;
         }
-        GameManager.OnShapeArrived?.Invoke();
 
+        TouchManager.OnSwipeDownAndRelase = null;
+        TouchManager.OnTap = null;
+        GameManager.OnShapeArrived?.Invoke();
     }
 
     /// <summary>
@@ -184,14 +213,32 @@ public class Shape : MonoBehaviour
     /// <param name="dirFactor"></param>
     void MoveHorizontal(float dirFactor)
     {
-        foreach (Transform child in children)
-        {
-            if (!child.GetComponent<Piece>().ThrowRayHorizontal(dirFactor))
-                return;
-        }
+        if(horizontalMovemnetCor != null)
+            StopCoroutine(horizontalMovemnetCor);
 
-        transform.position += new Vector3(GameManager.CELL_SIZE * dirFactor, 0);
-        FindFloor();
+        horizontalMovemnetCor = StartCoroutine(mh(dirFactor));
+    }
+
+    IEnumerator mh(float dirFactor)
+    {
+        while(true)
+        {
+            bool isBeyondBorder = false;
+
+            foreach (Transform child in children)
+            {
+                if (!child.GetComponent<Piece>().ThrowRayHorizontal(dirFactor))
+                    isBeyondBorder = true;
+            }
+
+            if(!isBeyondBorder) 
+            {
+                transform.position += new Vector3(GameManager.CELL_SIZE * dirFactor, 0);
+                FindFloor();
+            }
+            yield return new WaitForSeconds(xMovementDelay);
+            //yield return null;
+        }
     }
 
     /// <summary>
